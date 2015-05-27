@@ -3,7 +3,7 @@ import uuid
 
 from django.conf import settings
 from log_request_id import local, REQUEST_ID_HEADER_SETTING, LOG_REQUESTS_SETTING, NO_REQUEST_ID, \
-    REQUEST_ID_RESPONSE_HEADER_SETTING
+    REQUEST_ID_RESPONSE_HEADER_SETTING, , REQUEST_ID_IGNORE_PATHS
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,10 @@ class RequestIDMiddleware(object):
 
         # Don't log favicon
         if 'favicon' in request.path:
+            return response
+
+        ignore_paths = getattr(settings, REQUEST_ID_IGNORE_PATHS, (,))
+        if request.path.startswith(ignore_paths):
             return response
 
         user = getattr(request, 'user', None)

@@ -32,6 +32,15 @@ class RequestIDLoggingTestCase(TestCase):
             test_view(request)
             self.assertTrue('some_request_id' in self.handler.messages[0])
 
+    def test_external_id_missing_in_http_header_should_fallback_to_generated_id(self):
+        with self.settings(LOG_REQUEST_ID_HEADER='REQUEST_ID_HEADER', GENERATE_REQUEST_ID_IF_NOT_IN_HEADER=True):
+            request = self.factory.get('/')
+            middleware = RequestIDMiddleware()
+            middleware.process_request(request)
+            self.assertTrue(hasattr(request, 'id'))
+            test_view(request)
+            self.assertTrue(request.id in self.handler.messages[0])
+
     def test_log_requests(self):
 
         class DummyUser(object):
@@ -70,6 +79,22 @@ class RequestIDLoggingTestCase(TestCase):
 class RequestIDPassthroughTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
+
+    def test_request_id_passthrough_with_custom_header(self):
+        with self.settings(LOG_REQUEST_ID_HEADER='REQUEST_ID_HEADER', OUTGOING_REQUEST_ID_HEADER='OUTGOING_REQUEST_ID_HEADER'):
+            from log_request_id.session import Session
+            request = self.factory.get('/')
+            request.META['REQUEST_ID_HEADER'] = 'some_request_id'
+            middleware = RequestIDMiddleware()
+            middleware.process_request(request)
+            self.assertEqual(request.id, 'some_request_id')
+            session = Session()
+            outgoing = Request('get', 'http://nowhere')
+            session.prepare_request(outgoing)
+            self.assertEqual(
+                outgoing.headers['OUTGOING_REQUEST_ID_HEADER'],
+                'some_request_id'
+            )
 
     def test_request_id_passthrough(self):
         with self.settings(LOG_REQUEST_ID_HEADER='REQUEST_ID_HEADER'):

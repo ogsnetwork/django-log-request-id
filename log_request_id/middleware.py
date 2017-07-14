@@ -34,7 +34,7 @@ class RequestIDMiddleware(MiddlewareMixin):
         if 'favicon' in request.path:
             return response
 
-        ignore_paths = getattr(settings, REQUEST_ID_IGNORE_PATHS, (,))
+        ignore_paths = getattr(settings, REQUEST_ID_IGNORE_PATHS, tuple())
         if request.path.startswith(ignore_paths):
             return response
 

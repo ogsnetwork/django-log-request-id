@@ -19,9 +19,11 @@ class RequestIDMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         request_id = self._get_request_id(request)
+        timestamp = time.mktime(datetime.datetime.now().timetuple())
         local.request_id = request_id
         request.id = request_id
-        request.timestamp = time.mktime(datetime.datetime.now().timetuple())
+        request.timestamp = timestamp
+        local.timestamp = timestamp
 
     def process_response(self, request, response):
         if getattr(settings, REQUEST_ID_RESPONSE_HEADER_SETTING, False) and getattr(request, 'id', None):
@@ -52,6 +54,7 @@ class RequestIDMiddleware(MiddlewareMixin):
 
         try:
             del local.request_id
+            del local.timestamp
         except AttributeError:
             pass
 
@@ -77,4 +80,4 @@ class RequestIDMiddleware(MiddlewareMixin):
         return self._generate_id()
 
     def _generate_id(self):
-        return uuid.uuid4().hex
+        return 'ogs-req:{}'.format(uuid.uuid4().hex)

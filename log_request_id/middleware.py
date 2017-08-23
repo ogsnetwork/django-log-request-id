@@ -62,7 +62,7 @@ class RequestIDMiddleware(MiddlewareMixin):
 
     def _get_request_id(self, request):
         request_id_header = getattr(settings, REQUEST_ID_HEADER_SETTING, None)
-        generate_request_if_not_in_header = getattr(settings, GENERATE_REQUEST_ID_IF_NOT_IN_HEADER_SETTING, False)
+        generate_request_if_not_in_header = getattr(settings, GENERATE_REQUEST_ID_IF_NOT_IN_HEADER_SETTING, True)
 
         if request_id_header:
             # fallback to NO_REQUEST_ID if settings asked to use the
